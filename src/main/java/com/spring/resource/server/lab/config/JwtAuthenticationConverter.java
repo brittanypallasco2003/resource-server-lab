@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -16,6 +15,8 @@ import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.stereotype.Component;
+
+import com.spring.resource.server.lab.config.dtos.JwtAuthConverterProperties;
 
 import tools.jackson.databind.ObjectMapper;
 
@@ -29,14 +30,13 @@ public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthen
     private final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter;
     private final ObjectMapper objectMapper;
 
-    @Value("${jwt.auth.converter.principle-attribute}")
-    private String principalAttribute;
-    @Value("${jwt.auth.converter.resource-id}")
-    private String resourceId;
+    private final JwtAuthConverterProperties jwtAuthConverterProperties;
 
-    public JwtAuthenticationConverter(JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter, ObjectMapper objectMapper) {
+
+    public JwtAuthenticationConverter(JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter, ObjectMapper objectMapper, JwtAuthConverterProperties jwtAuthConverterProperties) {
         this.jwtGrantedAuthoritiesConverter = jwtGrantedAuthoritiesConverter;
         this.objectMapper = objectMapper;
+        this.jwtAuthConverterProperties = jwtAuthConverterProperties;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthen
     }
 
     private String getPrincipalClaimName(Jwt jwt) {
-        String claimName = principalAttribute != null ? principalAttribute : JwtClaimNames.SUB;
+        String claimName = jwtAuthConverterProperties.principalAttribute() != null ? jwtAuthConverterProperties.principalAttribute() : JwtClaimNames.SUB;
         return jwt.getClaim(claimName);
     }
 
@@ -61,7 +61,7 @@ public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthen
         }
 
         Map<String, Object> resourceAccess = jwt.getClaimAsMap(RESOURCE_ACCESS_CLAIM);
-        if (!resourceAccess.containsKey(resourceId)) return Set.of();
+        if (!resourceAccess.containsKey(jwtAuthConverterProperties.resourceId())) return Set.of();
     
 
         Map<String, Object> resource = castMapResourceId(resourceAccess);
@@ -77,7 +77,7 @@ public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthen
 
     @SuppressWarnings("unchecked")
     private Map<String, Object> castMapResourceId(Map<String, Object> resourceAccess) {
-        return objectMapper.convertValue(resourceAccess.get(resourceId), Map.class);
+        return objectMapper.convertValue(resourceAccess.get(jwtAuthConverterProperties.resourceId()), Map.class);
     }
 
 }
