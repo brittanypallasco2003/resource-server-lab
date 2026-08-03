@@ -2,7 +2,12 @@ package com.spring.resource.server.lab;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
+import com.spring.resource.server.lab.config.dtos.JwtAuthConverterProperties;
+import com.spring.resource.server.lab.config.dtos.KeycloakAdminProperties;
+
+@EnableConfigurationProperties({JwtAuthConverterProperties.class, KeycloakAdminProperties.class})
 @SpringBootApplication
 public class ResourceServerLabApplication {
 
