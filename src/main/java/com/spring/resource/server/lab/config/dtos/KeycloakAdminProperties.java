@@ -11,7 +11,6 @@ public record KeycloakAdminProperties(
         String realmMaster,
         String realmName,
         String adminCli,
-        String adminConsole,
         String user,
         String password,
         String clientSecret
