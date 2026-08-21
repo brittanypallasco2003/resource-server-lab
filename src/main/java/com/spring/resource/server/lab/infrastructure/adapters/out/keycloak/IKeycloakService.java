@@ -1,10 +1,10 @@
-package com.spring.resource.server.lab.services;
+package com.spring.resource.server.lab.infrastructure.adapters.out.keycloak;
 
 import java.util.Set;
 
 import org.keycloak.representations.idm.UserRepresentation;
 
-import com.spring.resource.server.lab.controller.dto.Keycloak.UserDto;
+import com.spring.resource.server.lab.infrastructure.adapters.in.rest.dto.UserDto;
 
 /// Interface for Keycloak service that defines methods for managing users in Keycloak.
 public interface IKeycloakService {

@@ -1,4 +1,4 @@
-package com.spring.resource.server.lab.controller.dto.Keycloak;
+package com.spring.resource.server.lab.infrastructure.adapters.in.rest.dto;
 
 import java.util.Set;
 

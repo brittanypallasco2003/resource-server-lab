@@ -1,4 +1,4 @@
-package com.spring.resource.server.lab.config;
+package com.spring.resource.server.lab.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

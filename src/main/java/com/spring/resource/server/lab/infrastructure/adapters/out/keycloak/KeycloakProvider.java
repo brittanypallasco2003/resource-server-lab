@@ -1,4 +1,4 @@
-package com.spring.resource.server.lab.util;
+package com.spring.resource.server.lab.infrastructure.adapters.out.keycloak;
 
 import org.jboss.resteasy.client.jaxrs.internal.ResteasyClientBuilderImpl;
 import org.keycloak.admin.client.Keycloak;
@@ -7,7 +7,7 @@ import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.springframework.stereotype.Component;
 
-import com.spring.resource.server.lab.config.dtos.KeycloakAdminProperties;
+import com.spring.resource.server.lab.infrastructure.config.properties.KeycloakAdminProperties;
 
 @Component
 public class KeycloakProvider {

@@ -1,4 +1,4 @@
-package com.spring.resource.server.lab.config.dtos;
+package com.spring.resource.server.lab.infrastructure.config.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;

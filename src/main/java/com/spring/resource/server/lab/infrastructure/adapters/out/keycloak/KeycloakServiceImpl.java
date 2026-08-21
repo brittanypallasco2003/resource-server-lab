@@ -1,4 +1,4 @@
-package com.spring.resource.server.lab.services;
+package com.spring.resource.server.lab.infrastructure.adapters.out.keycloak;
 
 import java.util.HashSet;
 import java.util.List;
@@ -13,8 +13,7 @@ import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
 
-import com.spring.resource.server.lab.controller.dto.Keycloak.UserDto;
-import com.spring.resource.server.lab.util.KeycloakProvider;
+import com.spring.resource.server.lab.infrastructure.adapters.in.rest.dto.UserDto;
 
 @Service
 public class KeycloakServiceImpl implements IKeycloakService {

@@ -1,4 +1,4 @@
-package com.spring.resource.server.lab.controller;
+package com.spring.resource.server.lab.infrastructure.adapters.in.rest;
 
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
