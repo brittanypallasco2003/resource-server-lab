@@ -3,6 +3,7 @@ package com.spring.resource.server.lab.domain.model;
 import java.io.Serializable;
 
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 /// Root of every domain model: the only thing they all share is having an identity.
 ///
@@ -19,6 +20,7 @@ import lombok.Getter;
 ///
 /// @param <ID> type of the identifier
 @Getter
+@SuperBuilder
 public abstract sealed class BaseModel<ID extends Serializable> permits AuditableModel, NonAuditableModel {
 
     private final ID id;
@@ -26,6 +28,32 @@ public abstract sealed class BaseModel<ID extends Serializable> permits Auditabl
     /// @param id the identity assigned by the repository; `null` until the model is persisted
     protected BaseModel(ID id) {
         this.id = id;
+    }
+
+    /// Two models are the same when they are of the same class and share an identity — the usual
+    /// rule for an entity, as opposed to the field-by-field equality a record gives for free.
+    /// [User] used to be a record and lost that equality when it became a class; this restores it
+    /// with the semantics an entity actually wants.
+    ///
+    /// A model with no identity yet falls back to reference equality. Treating every unsaved
+    /// model as equal to every other unsaved one would collapse them into a single element the
+    /// moment they were put in a `Set`.
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass() || id == null) {
+            return false;
+        }
+        return id.equals(((BaseModel<?>) obj).id);
+    }
+
+    /// Constant for models with no identity, so that assigning one later does not strand the
+    /// model in the wrong bucket of a hash-based collection.
+    @Override
+    public int hashCode() {
+        return id == null ? 0 : id.hashCode();
     }
 
 }

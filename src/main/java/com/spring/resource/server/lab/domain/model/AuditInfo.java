@@ -48,6 +48,19 @@ public record AuditInfo(
         return new AuditInfo(null, null, null, createdBy, createdBy, null);
     }
 
+    /// Copy of the trail with the modification recorded at the current instant, keeping whoever
+    /// was recorded as the last author.
+    ///
+    /// It exists because the application has no notion of a current user yet: nothing in the
+    /// domain or the application layer knows who is making the call. Until that is wired in,
+    /// refreshing the timestamp without inventing an author is the honest option — passing null
+    /// to [#modified(String)] would erase an author a previous write did know.
+    ///
+    /// @return AuditInfo a copy with a refreshed `updatedAt` and the same `updatedBy`
+    public AuditInfo modified() {
+        return modified(updatedBy);
+    }
+
     /// Copy of the trail with the modification recorded at the current instant.
     /// @param updatedBy author of the modification
     /// @return AuditInfo a copy with a refreshed `updatedAt`
