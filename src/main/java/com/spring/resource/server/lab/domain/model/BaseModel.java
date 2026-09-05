@@ -3,7 +3,6 @@ package com.spring.resource.server.lab.domain.model;
 import java.io.Serializable;
 
 import lombok.Getter;
-import lombok.experimental.SuperBuilder;
 
 /// Root of every domain model: the only thing they all share is having an identity.
 ///
@@ -20,7 +19,6 @@ import lombok.experimental.SuperBuilder;
 ///
 /// @param <ID> type of the identifier
 @Getter
-@SuperBuilder
 public abstract sealed class BaseModel<ID extends Serializable> permits AuditableModel, NonAuditableModel {
 
     private final ID id;

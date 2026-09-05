@@ -3,7 +3,6 @@ package com.spring.resource.server.lab.domain.model;
 import java.io.Serializable;
 
 import lombok.Getter;
-import lombok.experimental.SuperBuilder;
 
 /// A model that carries an audit trail and a lifecycle status.
 ///
@@ -19,7 +18,6 @@ import lombok.experimental.SuperBuilder;
 ///
 /// @param <ID> type of the identifier
 @Getter
-@SuperBuilder
 public abstract non-sealed class AuditableModel<ID extends Serializable> extends BaseModel<ID> {
 
     private final AuditInfo auditInfo;
