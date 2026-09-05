@@ -10,7 +10,6 @@ public interface CreateUserUseCase {
     /// @param command the data required to create the user
     /// @return User the created user, already carrying its identity
     /// @throws com.spring.resource.server.lab.domain.exception.UserAlreadyExistsException if the username is already taken
-    /// @throws com.spring.resource.server.lab.domain.exception.InvalidUserDataException if the command is missing required data
     User execute(CreateUserCommand command);
 
 }
