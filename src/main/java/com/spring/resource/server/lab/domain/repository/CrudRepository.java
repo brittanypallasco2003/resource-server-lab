@@ -56,8 +56,12 @@ public interface CrudRepository<T, ID> {
     /// longer any way for the identifier passed alongside and the one carried inside the aggregate
     /// to disagree; there is only one now, and it is the aggregate's own.
     ///
-    /// Telling an insert from an update is the adapter's business: the JPA one leans on
-    /// `Persistable.isNew()`, which already knows whether the row exists.
+    /// Telling an insert from an update is the adapter's business, and it is the reason this port
+    /// has one method instead of two. The JPA adapter lets `merge` resolve it: one query to see
+    /// what the table holds, then the insert or the update. Should that query ever be worth
+    /// removing, the honest fix is to split this method in two so the caller — which knows which
+    /// one it is — can say so; guessing inside the adapter is what produced a duplicate-key error
+    /// on every update once before.
     ///
     /// @param aggregate the aggregate to store, with its identity already assigned
     /// @return T the aggregate as it ended up stored
