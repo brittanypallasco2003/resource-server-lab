@@ -1,9 +1,8 @@
 package com.spring.resource.server.lab.application.services;
 
-import java.util.Set;
-
 import com.spring.resource.server.lab.application.ports.SearchUserByUsernameUseCase;
 import com.spring.resource.server.lab.domain.exception.InvalidUserDataException;
+import com.spring.resource.server.lab.domain.exception.UserNotFoundException;
 import com.spring.resource.server.lab.domain.model.User;
 import com.spring.resource.server.lab.domain.repository.UserRepository;
 
@@ -20,11 +19,14 @@ public class SearchUserByUsernameService implements SearchUserByUsernameUseCase 
     }
 
     @Override
-    public Set<User> execute(String username) {
+    public User execute(String username) {
         if (username == null || username.isBlank()) {
             throw new InvalidUserDataException("El nombre de usuario a buscar no puede estar vacío");
         }
-        return userRepository.searchByUsername(username.trim());
+
+        String exact = username.trim();
+        return userRepository.searchByUsername(exact)
+                .orElseThrow(() -> new UserNotFoundException(exact));
     }
 
 }
