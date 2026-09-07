@@ -1,6 +1,6 @@
 package com.spring.resource.server.lab.domain.repository;
 
-import java.util.Set;
+import java.util.Optional;
 
 import com.spring.resource.server.lab.domain.model.User;
 
@@ -15,14 +15,28 @@ import com.spring.resource.server.lab.domain.model.User;
 /// [IdentityProvider], because only the identity provider can actually hold one.
 public interface UserRepository extends CrudRepository<User, String> {
 
-    /// Find users by their exact username.
-    /// @param username the exact username to search for
-    /// @return Set<User> the users with the given username; empty if none found
-    Set<User> searchByUsername(String username);
+    /// Finds the user with **exactly** this username.
+    ///
+    /// It returns at most one because a username identifies a single user: the `@Unique`
+    /// constraint on the creation request and the `uk_users_username` index on the table both say
+    /// so. Returning a collection would have suggested otherwise and forced every caller to handle
+    /// a case that cannot happen.
+    ///
+    /// Deleted users are excluded, like in every other read of this port — so a soft-deleted
+    /// username reads as free.
+    ///
+    /// @param username the exact username to look for
+    /// @return Optional<User> the user, or empty when nobody has that username
+    Optional<User> searchByUsername(String username);
 
-    /// Checks if a user exists by their exact username.
-    /// @param username the exact username to check for existence
-    /// @return boolean true if a user with the given username exists, false otherwise
+    /// Tells whether a user already has this username.
+    ///
+    /// The same question as [#searchByUsername(String)], asked when the user itself is not needed:
+    /// it answers with a `COUNT` instead of loading and mapping a row. A soft-deleted user does not
+    /// count, so deleting a user frees their username.
+    ///
+    /// @param username the exact username to check
+    /// @return boolean true when a live user has that username
     boolean existsByUsername(String username);
 
 }
