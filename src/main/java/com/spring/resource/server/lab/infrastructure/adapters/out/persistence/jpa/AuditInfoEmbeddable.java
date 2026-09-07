@@ -8,15 +8,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/// Las seis columnas de auditoría, agrupadas para poder incrustarlas en cualquier tabla.
+/// The six audit columns, grouped so they can be embedded in any table.
 ///
-/// Es una clase aparte de [com.spring.resource.server.lab.domain.model.AuditInfo] por el mismo
-/// motivo por el que [UserJpaEntity] es una clase aparte de
-/// [com.spring.resource.server.lab.domain.model.User]: el record del dominio no puede llevar
-/// anotaciones de `jakarta.persistence`, y JPA necesita constructor sin argumentos y campos
-/// mutables, que un record no da.
+/// It is a class separate from [com.spring.resource.server.lab.domain.model.AuditInfo] for the same
+/// reason [UserJpaEntity] is separate from
+/// [com.spring.resource.server.lab.domain.model.User]: the domain record cannot carry
+/// `jakarta.persistence` annotations, and JPA needs a no-argument constructor and mutable fields,
+/// which a record does not give.
 ///
-/// Aquí no se ponen valores por defecto: cuando estos datos llegan, el dominio ya los rellenó.
+/// No defaults are applied here: by the time this data arrives, the domain has already filled it
+/// in.
 @Embeddable
 @Getter
 @Setter

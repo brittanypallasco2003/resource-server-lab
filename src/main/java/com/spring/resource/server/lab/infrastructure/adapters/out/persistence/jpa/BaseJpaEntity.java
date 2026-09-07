@@ -2,6 +2,7 @@ package com.spring.resource.server.lab.infrastructure.adapters.out.persistence.j
 
 import java.io.Serializable;
 
+import lombok.Setter;
 import org.springframework.data.domain.Persistable;
 
 import jakarta.persistence.Id;
@@ -11,66 +12,69 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Transient;
 import lombok.Getter;
 
-/// Raíz de las entidades JPA, espejo de
-/// [com.spring.resource.server.lab.domain.model.BaseModel] en el lado de la persistencia.
+/// Root of the JPA entities, the mirror of
+/// [com.spring.resource.server.lab.domain.model.BaseModel] on the persistence side.
 ///
-/// Es `@MappedSuperclass` y no `@Entity`: no le corresponde ninguna tabla propia, solo aporta la
-/// columna del identificador a las tablas de quienes la extienden. Sin esa anotación, JPA ni
-/// siquiera vería el campo `id` y arrancaría quejándose de que la entidad no tiene identificador.
+/// It is `@MappedSuperclass` and not `@Entity`: no table of its own corresponds to it, it only
+/// contributes the identifier column to the tables of whoever extends it. Without that annotation
+/// JPA would not even see the `id` field and would start up complaining that the entity has no
+/// identifier.
 ///
-/// El identificador es genérico igual que en el dominio. Hibernate resuelve de qué tipo es
-/// mirando el argumento que fija la entidad concreta (`UserJpaEntity extends
-/// BaseJpaEntity<String>`), así que basta con declararlo una vez aquí.
+/// The identifier is generic just as it is in the domain. Hibernate works out its type by looking
+/// at the argument the concrete entity fixes (`UserJpaEntity extends BaseJpaEntity<String>`), so
+/// declaring it once here is enough.
 ///
-/// **No lleva `@GeneratedValue` a propósito.** El identificador se decide en el dominio antes de
-/// guardar y llega hecho a través del mapper; la base de datos solo lo escribe. Ese es también el
-/// motivo de implementar [Persistable]: ver [#isNew()].
+/// **There is no `@GeneratedValue` on purpose.** The identifier is decided in the domain before
+/// storing and arrives ready-made through the mapper; the database only writes it down. That is
+/// also the reason for implementing [Persistable]: see [#isNew()].
 ///
-/// @param <ID> tipo del identificador
+/// @param <ID> type of the identifier
 @Getter
+@Setter
 @MappedSuperclass
 public abstract class BaseJpaEntity<ID extends Serializable> implements Persistable<ID> {
 
     @Id
     private ID id;
 
-    /// Marca de «todavía no está en la tabla». Es `@Transient`, así que no existe como columna:
-    /// vive solo mientras el objeto está en memoria.
+    /// Flag meaning "not in the table yet". It is `@Transient`, so it does not exist as a column:
+    /// it lives only while the object is in memory.
     @Transient
     private boolean pendingInsert = true;
 
-    /// Constructor sin argumentos exigido por JPA.
+    /// No-argument constructor required by JPA.
     protected BaseJpaEntity() {
     }
 
-    /// @param id el identificador ya decidido por el dominio
+    /// @param id the identifier already decided by the domain
     protected BaseJpaEntity(ID id) {
         this.id = id;
     }
 
-    /// Indica a Spring Data si la entidad es un alta o una modificación.
+    /// Tells Spring Data whether the entity is an insert or an update.
     ///
-    /// Sin esto, Spring Data decide mirando si el id es nulo. Como aquí el id **siempre** viene
-    /// puesto, daría siempre por hecho que la fila ya existe: cada alta acabaría en un `merge`,
-    /// que lanza un `SELECT` para comprobarlo antes de poder hacer el `INSERT`. Con la marca, un
-    /// alta es un `INSERT` directo.
+    /// Without this, Spring Data decides by looking at whether the id is null. Since the id here is
+    /// **always** set, it would always assume the row already exists: every insert would end up in
+    /// a `merge`, which issues a `SELECT` to check before it can `INSERT`. With the flag, an insert
+    /// is a plain `INSERT`.
     @Override
     public boolean isNew() {
         return pendingInsert;
     }
 
-    /// Baja la marca en cuanto la fila existe de verdad: al insertarla o al leerla de la tabla.
+    /// Clears the flag as soon as the row really exists: when inserting it or when reading it
+    /// back from the table.
     @PostLoad
     @PrePersist
     void markAsStored() {
         this.pendingInsert = false;
     }
 
-    /// Dos entidades son la misma si comparten identificador, igual que en el dominio.
+    /// Two entities are the same when they share an identifier, just as in the domain.
     ///
-    /// La comparación es por `instanceof` y no por `getClass()` porque Hibernate entrega a veces
-    /// un proxy —una subclase invisible generada al vuelo— y con `getClass()` una entidad nunca
-    /// sería igual a su propio proxy.
+    /// The comparison uses `instanceof` and not `getClass()` because Hibernate sometimes hands back
+    /// a proxy — an invisible subclass generated on the fly — and with `getClass()` an entity would
+    /// never equal its own proxy.
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
