@@ -8,7 +8,7 @@ import java.io.Serializable;
 ///
 /// Returning null is the whole point, not a gap. It is what lets a model be built before its
 /// identity exists, and the outbound adapter fills it in afterwards through the model's
-/// `conId(…)` copy method. Any model using this strategy therefore has a null id between being
+/// `withId(…)` copy method. Any model using this strategy therefore has a null id between being
 /// created and being stored, which is exactly the window
 /// [com.spring.resource.server.lab.domain.model.BaseModel#equals(Object)] falls back to reference
 /// equality for.
