@@ -32,11 +32,20 @@ import lombok.Setter;
 /// `User extends AuditableModel<String>` fixes. The id is not generated here: it arrives already
 /// set from the domain, which is why there is no `@GeneratedValue` anywhere in this hierarchy.
 @Entity
-@Table(name = "users", uniqueConstraints = @UniqueConstraint(name = "uk_users_username", columnNames = "username"))
+@Table(name = "users",
+        uniqueConstraints = @UniqueConstraint(name = UserJpaEntity.USERNAME_CONSTRAINT, columnNames = "username"))
 @AttributeOverride(name = "id", column = @Column(name = "id", length = 40))
 @Getter
 @Setter
 public class UserJpaEntity extends AuditableJpaEntity<String> {
+
+    /// Name of the unique index on `username`, declared here so the adapter can recognise which
+    /// constraint a database error came from instead of matching on the message text.
+    ///
+    /// It is the last line of defence for username uniqueness. `@Unique` on `CreateUserRequest`
+    /// and the check in `UpdateUserService` both read before they write, so two concurrent
+    /// requests can pass them both and still collide here.
+    public static final String USERNAME_CONSTRAINT = "uk_users_username";
 
     @Column(nullable = false, length = 100)
     private String username;

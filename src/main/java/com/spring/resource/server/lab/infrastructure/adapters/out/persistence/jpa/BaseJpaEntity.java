@@ -2,14 +2,8 @@ package com.spring.resource.server.lab.infrastructure.adapters.out.persistence.j
 
 import java.io.Serializable;
 
-import lombok.Setter;
-import org.springframework.data.domain.Persistable;
-
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.PostLoad;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Transient;
 import lombok.Getter;
 
 /// Root of the JPA entities, the mirror of
@@ -25,22 +19,37 @@ import lombok.Getter;
 /// declaring it once here is enough.
 ///
 /// **There is no `@GeneratedValue` on purpose.** The identifier is decided in the domain before
-/// storing and arrives ready-made through the mapper; the database only writes it down. That is
-/// also the reason for implementing [Persistable]: see [#isNew()].
+/// storing and arrives ready-made through the mapper; the database only writes it down.
+///
+/// That has one consequence worth stating, because it looks like an omission: **this class
+/// deliberately does not implement `Persistable`.** Spring Data picks `persist` or `merge` by
+/// asking `isNew()`, whose default answer is "the id is null". Here the id is *never* null, so the
+/// default always answers "not new" and every save goes through `merge` — one `SELECT` to see what
+/// is in the table, then the `INSERT` or the `UPDATE`. Correct in both directions, at the price of
+/// one query on inserts.
+///
+/// `Persistable` was tried, backed by a `@Transient boolean pendingInsert` cleared on `@PostLoad`
+/// and `@PrePersist`. It cannot work in this codebase: the entity read from the database is mapped
+/// to a domain `User` and thrown away, and a **brand-new** entity is built by the mapper for every
+/// save. That fresh object never went through either callback, so it always claimed to be new, and
+/// every update was attempted as an `INSERT` — a duplicate-key error on the second write of any
+/// user. The memory lived in an object that gets discarded.
+///
+/// Re-adding it only pays off together with a repository port that separates creating from
+/// updating, so the caller — which does know which one it is — can say so without a query. Until
+/// then, `merge` deciding for itself is both simpler and the same cost.
 ///
 /// @param <ID> type of the identifier
+/// Read-only from the outside: there is **no setter for the id**. It is assigned once, through
+/// the constructor, by the mapper translating from the domain. A `setId` would be inherited by
+/// every entity, and since [#equals(Object)] and [#hashCode()] are built on the identifier,
+/// reassigning it would strand the object in the wrong bucket of any hash-based collection.
 @Getter
-@Setter
 @MappedSuperclass
-public abstract class BaseJpaEntity<ID extends Serializable> implements Persistable<ID> {
+public abstract class BaseJpaEntity<ID extends Serializable> {
 
     @Id
     private ID id;
-
-    /// Flag meaning "not in the table yet". It is `@Transient`, so it does not exist as a column:
-    /// it lives only while the object is in memory.
-    @Transient
-    private boolean pendingInsert = true;
 
     /// No-argument constructor required by JPA.
     protected BaseJpaEntity() {
@@ -49,25 +58,6 @@ public abstract class BaseJpaEntity<ID extends Serializable> implements Persista
     /// @param id the identifier already decided by the domain
     protected BaseJpaEntity(ID id) {
         this.id = id;
-    }
-
-    /// Tells Spring Data whether the entity is an insert or an update.
-    ///
-    /// Without this, Spring Data decides by looking at whether the id is null. Since the id here is
-    /// **always** set, it would always assume the row already exists: every insert would end up in
-    /// a `merge`, which issues a `SELECT` to check before it can `INSERT`. With the flag, an insert
-    /// is a plain `INSERT`.
-    @Override
-    public boolean isNew() {
-        return pendingInsert;
-    }
-
-    /// Clears the flag as soon as the row really exists: when inserting it or when reading it
-    /// back from the table.
-    @PostLoad
-    @PrePersist
-    void markAsStored() {
-        this.pendingInsert = false;
     }
 
     /// Two entities are the same when they share an identifier, just as in the domain.
