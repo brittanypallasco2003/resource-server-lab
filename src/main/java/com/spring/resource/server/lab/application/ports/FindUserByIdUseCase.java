@@ -1,7 +1,6 @@
 package com.spring.resource.server.lab.application.ports;
 
 import com.spring.resource.server.lab.domain.model.User;
-import com.spring.resource.server.lab.domain.model.UserId;
 
 /// Interface that defines the operation for finding a single user by its identity. It is part of the application layer and serves as a contract for user-related use cases.
 public interface FindUserByIdUseCase {
@@ -10,6 +9,6 @@ public interface FindUserByIdUseCase {
     /// @param id the identity to look up
     /// @return User the user found
     /// @throws com.spring.resource.server.lab.domain.exception.UserNotFoundException if no user has that identity
-    User execute(UserId id);
+    User execute(String id);
 
 }

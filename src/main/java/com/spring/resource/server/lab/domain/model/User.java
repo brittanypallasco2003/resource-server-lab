@@ -27,7 +27,9 @@ public class User extends AuditableModel<String> {
 
     /// Role granted when a sign-up requests none. It used to be buried in the Keycloak adapter;
     /// it is a business rule, so its place is the domain.
-    public static final String DEFAULT_ROLE = "user";
+    ///
+    /// Uppercase, like every other role: see [DomainValidator#normalizeSet(java.util.Set, String)].
+    public static final String DEFAULT_ROLE = "USER";
 
     private static final String USERNAME_FIELD = "El nombre de usuario";
     private static final String EMAIL_FIELD = "El correo electrónico";
