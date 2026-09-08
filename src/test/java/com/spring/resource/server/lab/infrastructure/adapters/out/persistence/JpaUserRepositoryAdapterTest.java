@@ -20,6 +20,7 @@ import com.spring.resource.server.lab.domain.model.StatusEnum;
 import com.spring.resource.server.lab.domain.model.User;
 import com.spring.resource.server.lab.domain.model.valueobject.Email;
 import com.spring.resource.server.lab.domain.repository.UniqueField;
+import com.spring.resource.server.lab.infrastructure.adapters.out.persistence.exception.UserPersistenceExceptionTranslator;
 import com.spring.resource.server.lab.infrastructure.adapters.out.persistence.jpa.UserJpaEntity;
 import com.spring.resource.server.lab.infrastructure.adapters.out.persistence.mapper.UserJpaMapperImpl;
 
@@ -35,10 +36,11 @@ import com.spring.resource.server.lab.infrastructure.adapters.out.persistence.ma
 /// properties below keep the slice from resolving the Keycloak placeholders `application.properties`
 /// declares, so the suite does not depend on a `.env` being present.
 ///
-/// The adapter and the generated mapper are `@Import`ed because `@DataJpaTest` loads entities and
-/// Spring Data repositories only — a `@Repository` component of our own is not part of the slice.
+/// The adapter, the generated mapper and the exception translator are `@Import`ed because
+/// `@DataJpaTest` loads entities and Spring Data repositories only — a `@Repository` or
+/// `@Component` of our own is not part of the slice.
 @DataJpaTest
-@Import({ JpaUserRepositoryAdapter.class, UserJpaMapperImpl.class })
+@Import({ JpaUserRepositoryAdapter.class, UserJpaMapperImpl.class, UserPersistenceExceptionTranslator.class })
 @TestPropertySource(properties = {
         "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
         "spring.jpa.hibernate.ddl-auto=create-drop",

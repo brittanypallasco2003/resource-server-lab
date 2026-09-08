@@ -1,6 +1,5 @@
 package com.spring.resource.server.lab.infrastructure.adapters.out.persistence;
 
-import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -10,13 +9,12 @@ import com.spring.resource.server.lab.infrastructure.adapters.out.persistence.jp
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 
-import com.spring.resource.server.lab.domain.exception.UserAlreadyExistsException;
 import com.spring.resource.server.lab.domain.model.User;
 import com.spring.resource.server.lab.domain.repository.UniqueField;
 import com.spring.resource.server.lab.domain.repository.UserRepository;
+import com.spring.resource.server.lab.infrastructure.adapters.out.persistence.exception.UserPersistenceExceptionTranslator;
 import com.spring.resource.server.lab.infrastructure.adapters.out.persistence.mapper.UserJpaMapper;
 
 import static com.spring.resource.server.lab.domain.model.StatusEnum.DELETED;
@@ -28,11 +26,14 @@ public class JpaUserRepositoryAdapter implements UserRepository {
 
     private final UserJpaRepository jpaRepository;
     private final UserJpaMapper mapper;
+    private final UserPersistenceExceptionTranslator exceptionTranslator;
 
     public JpaUserRepositoryAdapter(UserJpaRepository jpaRepository,
-                                    UserJpaMapper mapper) {
+                                    UserJpaMapper mapper,
+                                    UserPersistenceExceptionTranslator exceptionTranslator) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
+        this.exceptionTranslator = exceptionTranslator;
     }
 
     @Override
@@ -95,6 +96,12 @@ public class JpaUserRepositoryAdapter implements UserRepository {
     ///
     /// The cost is that the statement is sent at this point instead of being batched with whatever
     /// else the transaction is doing. With one row per call, there is nothing to batch.
+    ///
+    /// *Which* failure the violation is, is not decided here: catching it is a persistence concern,
+    /// naming it is a separate one, and [UserPersistenceExceptionTranslator] owns the second.
+    ///
+    /// @param user the user to store
+    /// @return User the stored user, read back from the entity
     @Override
     @Transactional
     public User save(User user) {
@@ -102,31 +109,8 @@ public class JpaUserRepositoryAdapter implements UserRepository {
             UserJpaEntity entity = jpaRepository.saveAndFlush(mapper.toEntity(user));
             return mapper.toDomain(entity);
         } catch (DataIntegrityViolationException e) {
-            throw translate(e, user);
+            throw exceptionTranslator.translate(e, user);
         }
-    }
-
-    /// Turns a database integrity error into the right kind of failure.
-    ///
-    /// Only the username index becomes a [UserAlreadyExistsException]: that collision is a business
-    /// conflict and deserves a 409, the same call the Keycloak adapter makes when it sees a 409 of
-    /// its own. Anything else — a null in a non-null column, a broken foreign key — is a defect in
-    /// this application, not something the caller did, so it travels on untouched and surfaces as a
-    /// 500 with its stack trace intact.
-    ///
-    /// The constraint is recognised **by name**, not by matching the message text. That is what
-    /// keeps this from silently reclassifying an unrelated error the day a second index is added,
-    /// and it is the same reason the domain has typed exceptions at all.
-    ///
-    /// @param e the error the driver reported
-    /// @param user the user being stored, for the message
-    /// @return the exception to throw: a domain conflict, or the original error
-    private RuntimeException translate(DataIntegrityViolationException e, User user) {
-        if (e.getCause() instanceof ConstraintViolationException violation
-                && UserJpaEntity.USERNAME_CONSTRAINT.equalsIgnoreCase(violation.getConstraintName())) {
-            return new UserAlreadyExistsException(user.getUsername());
-        }
-        return e;
     }
 
     @Override
