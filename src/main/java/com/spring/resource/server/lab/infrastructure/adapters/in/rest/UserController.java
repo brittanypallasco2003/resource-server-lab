@@ -1,9 +1,7 @@
 package com.spring.resource.server.lab.infrastructure.adapters.in.rest;
 
 import java.net.URI;
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -57,7 +55,7 @@ import jakarta.validation.Valid;
 ///
 /// None of this works without `@EnableMethodSecurity`, which is on `SecurityConfig`.
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 public class UserController {
 
     private final FindAllUserUseCase findAllUserUseCase;
@@ -105,16 +103,18 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    /// Searches users by exact username.
-    /// @param username the username to search for
-    /// @return ResponseEntity<List<UserResponse>> 200 with the matches
+    /// Looks a user up by their exact username.
+    ///
+    /// It answers with a single user, not a list: a username belongs to exactly one. A username
+    /// nobody holds is a 404, the same as an unknown identifier on `GET /api/users/{id}`.
+    ///
+    /// @param username the exact username to look for
+    /// @return ResponseEntity<UserResponse> 200 with the user, or 404 when nobody has that username
     @GetMapping("/search")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ResponseEntity<Collection<UserResponse>> searchByUsername(@RequestParam String username) {
-        var users = searchUserByUsernameUseCase.execute(username).stream()
-                .map(mapper::toResponse)
-                .collect(Collectors.toSet());
-        return ResponseEntity.ok(users);
+    public ResponseEntity<UserResponse> searchByUsername(@RequestParam String username) {
+        User user = searchUserByUsernameUseCase.execute(username);
+        return ResponseEntity.ok(mapper.toResponse(user));
     }
 
     /// Creates a user.

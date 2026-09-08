@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 /// [com.spring.resource.server.lab.infrastructure.security.JwtAuthenticationConverter] really
 /// produced the authority `@PreAuthorize` is looking for.
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/test")
 public class TestController {
 
     /// Open to anyone: `SecurityConfig` lets this path through without a token.
